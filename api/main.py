@@ -25,6 +25,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -239,6 +240,14 @@ def run_sam(req: SAMRequest):
 
     Dispatches to Modal GPU when GEOSAM_USE_MODAL=1, otherwise runs on local CPU.
     """
+    try:
+        return _run_sam(req)
+    except Exception as exc:
+        import traceback
+        return JSONResponse(status_code=500, content={"detail": str(exc), "trace": traceback.format_exc()})
+
+
+def _run_sam(req: SAMRequest):
     vol = get_volume(req.dataset)
     n_il, n_xl, n_t = vol.shape
 

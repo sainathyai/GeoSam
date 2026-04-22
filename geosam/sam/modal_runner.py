@@ -176,6 +176,11 @@ def run_sam_gpu(
     iou_thresh: float = 0.70,
     stability_thresh: float = 0.80,
 ) -> dict:
-    """Dispatch to the correct SAMRunner instance for the given model_size."""
-    runner = SAMRunner(model_size=model_size)
+    """Dispatch to the correct SAMRunner instance for the given model_size.
+
+    Uses Cls.from_name so this works from any process (e.g. Cloud Run), not
+    just from within a Modal-managed context.
+    """
+    RemoteRunner = modal.Cls.from_name("geosam-sam", "SAMRunner")
+    runner = RemoteRunner(model_size=model_size)
     return runner.run.remote(rgb_bytes, image_shape, points_per_side, iou_thresh, stability_thresh)
