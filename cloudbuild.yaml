@@ -67,6 +67,7 @@ steps:
       - --concurrency=4
       - --timeout=120
       - --set-env-vars=GEOSAM_USE_MODAL=1,GEOSAM_GCS_BUCKET=geosam-datasets,GEOSAM_GCS_CKPT_BUCKET=geosam-checkpoints,GEOSAM_DATA_DIR=/tmp/geosam/data,GEOSAM_CKPT_DIR=/tmp/geosam/checkpoints
+      - --update-secrets=MODAL_TOKEN_ID=modal-token-id:latest,MODAL_TOKEN_SECRET=modal-token-secret:latest
 
   # ── Deploy UI to Cloud Run ───────────────────────────────────────────────────
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
