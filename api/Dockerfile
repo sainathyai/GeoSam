@@ -6,9 +6,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
-COPY pyproject.toml LICENSE ./
-RUN pip install --no-cache-dir ".[sam,gcp]" uvicorn fastapi
+# Install Python deps — torch/SAM2 not needed here; GPU inference runs on Modal
+COPY api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source
 COPY geosam/ geosam/
