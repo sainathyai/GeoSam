@@ -206,6 +206,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# ui/lib is source code, not a Python lib dir
+!ui/lib/
+
 # Seismic data — large binaries served from GCS, never committed
 data/*.segy
 data/*.sgy

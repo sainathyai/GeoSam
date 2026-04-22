@@ -37,18 +37,39 @@ USE_MODAL = os.getenv("GEOSAM_USE_MODAL", "0") == "1"
 if USE_MODAL:
     from geosam.sam.modal_runner import run_sam_gpu
 
+# When running in Cloud Run, datasets and checkpoints are pulled from GCS on first
+# access and cached locally at /tmp. Set GEOSAM_GCS_BUCKET to enable this path.
+GCS_BUCKET = os.getenv("GEOSAM_GCS_BUCKET", "")
+GCS_CKPT_BUCKET = os.getenv("GEOSAM_GCS_CKPT_BUCKET", "")
+
+def _gcs_local(bucket: str, blob: str, local_dir: str) -> Path:
+    """Download blob from GCS to local_dir if not already cached, return local path."""
+    local = Path(local_dir) / blob
+    if not local.exists():
+        local.parent.mkdir(parents=True, exist_ok=True)
+        from google.cloud import storage as gcs
+        client = gcs.Client()
+        client.bucket(bucket).blob(blob).download_to_filename(str(local))
+    return local
+
 app = FastAPI(title="GeoSAM API", version="0.1.0")
 
+# Allow production domain + local dev
+_cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://geosam.veritasintelai.com",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-DATA_DIR = Path("data")
-CKPT_DIR = Path("checkpoints")
+DATA_DIR = Path(os.getenv("GEOSAM_DATA_DIR", "data"))
+CKPT_DIR = Path(os.getenv("GEOSAM_CKPT_DIR", "checkpoints"))
 
 DATASETS = {
     "synthetic_large": DATA_DIR / "synthetic_large.segy",
@@ -78,10 +99,13 @@ _vol_cache: dict = {}
 def get_volume(name: str) -> np.ndarray:
     if name not in DATASETS:
         raise HTTPException(404, f"Dataset '{name}' not found")
-    path = str(DATASETS[name])
-    if path not in _vol_cache:
-        _vol_cache[path] = load_volume(path)
-    return _vol_cache[path]
+    path = DATASETS[name]
+    if GCS_BUCKET and not path.exists():
+        path = _gcs_local(GCS_BUCKET, path.name, "/tmp/geosam/data")
+    key = str(path)
+    if key not in _vol_cache:
+        _vol_cache[key] = load_volume(str(path))
+    return _vol_cache[key]
 
 
 # ── Image helpers ─────────────────────────────────────────────────────────────

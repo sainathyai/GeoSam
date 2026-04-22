@@ -1,0 +1,87 @@
+substitutions:
+  _REGION: us-central1
+  _REPO: us-central1-docker.pkg.dev/geosam-app/geosam
+  _API_URL: https://api.geosam.veritasintelai.com
+
+steps:
+  # ── Build API image ──────────────────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: build-api
+    args:
+      - build
+      - -t
+      - ${_REPO}/api:$COMMIT_SHA
+      - -t
+      - ${_REPO}/api:latest
+      - -f
+      - api/Dockerfile
+      - .
+
+  # ── Build UI image ───────────────────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: build-ui
+    args:
+      - build
+      - -t
+      - ${_REPO}/ui:$COMMIT_SHA
+      - -t
+      - ${_REPO}/ui:latest
+      - --build-arg
+      - NEXT_PUBLIC_API_URL=${_API_URL}
+      - -f
+      - ui/Dockerfile
+      - ui/
+
+  # ── Push both images ─────────────────────────────────────────────────────────
+  - name: gcr.io/cloud-builders/docker
+    id: push-api
+    waitFor: [build-api]
+    args: [push, --all-tags, ${_REPO}/api]
+
+  - name: gcr.io/cloud-builders/docker
+    id: push-ui
+    waitFor: [build-ui]
+    args: [push, --all-tags, ${_REPO}/ui]
+
+  # ── Deploy API to Cloud Run ──────────────────────────────────────────────────
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-api
+    waitFor: [push-api]
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - geosam-api
+      - --image=${_REPO}/api:$COMMIT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=4Gi
+      - --cpu=2
+      - --concurrency=4
+      - --timeout=120
+      - --set-env-vars=GEOSAM_USE_MODAL=1,GEOSAM_GCS_BUCKET=geosam-datasets,GEOSAM_GCS_CKPT_BUCKET=geosam-checkpoints,GEOSAM_DATA_DIR=/tmp/geosam/data,GEOSAM_CKPT_DIR=/tmp/geosam/checkpoints
+
+  # ── Deploy UI to Cloud Run ───────────────────────────────────────────────────
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: deploy-ui
+    waitFor: [push-ui]
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - geosam-ui
+      - --image=${_REPO}/ui:$COMMIT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --memory=512Mi
+      - --cpu=1
+      - --concurrency=80
+
+images:
+  - ${_REPO}/api:$COMMIT_SHA
+  - ${_REPO}/ui:$COMMIT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
