@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+/* ── Veritas Seismic Design System ──────────────────────────────── */
+:root {
+  --navy:       #07090f;
+  --navy-2:     #0d1120;
+  --navy-3:     #141929;
+  --navy-4:     #1c2438;
+  --slate:      #2d3a52;
+  --slate-2:    #3d4f6e;
+  --teal:       #00e5c3;
+  --teal-dim:   #00b89e;
+  --teal-ghost: rgba(0,229,195,0.07);
+  --teal-border:rgba(0,229,195,0.12);
+  --amber:      #f5a623;
+  --green:      #4ade80;
+  --red:        #f87171;
+  --white:      #eef2f9;
+  --white-dim:  #9aadc8;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono:  'IBM Plex Mono', monospace;
+  --sans:  'DM Sans', system-ui, sans-serif;
+
+  /* grid gap separator */
+  --gap-bg: rgba(0,229,195,0.06);
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Noise texture overlay (matches Veritas) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--slate); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--slate-2); }
+
+/* ── Mono labels ─────────────────────────────────────────────────── */
+.mono {
+  font-family: var(--mono);
+}
+
+.label-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate-2);
+}
+
+.label-tag.teal {
+  color: var(--teal);
+}
+
+.section-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-tag::before {
+  content: '//';
+  color: var(--slate-2);
+}
+
+/* ── Nav panel ──────────────────────────────────────────────────── */
+.nav-surface {
+  background: var(--navy-2);
+  border-right: 1px solid var(--teal-border);
+}
+
+/* ── Cards / panels ─────────────────────────────────────────────── */
+.panel {
+  background: var(--navy-2);
+}
+
+/* 2px gap grid (Veritas signature look) */
+.grid-gap {
+  background: var(--gap-bg);
+  gap: 2px;
+}
+
+/* ── Range sliders — teal accent ────────────────────────────────── */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 0;
+  outline: none;
+  cursor: pointer;
+  background: var(--slate);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 0;
+  background: var(--teal);
+  border: 2px solid var(--navy-2);
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,229,195,0.5);
+  transition: transform 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+input[type=range].amber::-webkit-slider-thumb {
+  background: var(--amber);
+  box-shadow: 0 0 6px rgba(245,166,35,0.5);
+}
+
+/* ── Select ─────────────────────────────────────────────────────── */
+select {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Seismic image ──────────────────────────────────────────────── */
+.seismic-img {
+  image-rendering: pixelated;
+  width: 100%;
+  display: block;
+}
+
+/* ── Teal button (primary) ──────────────────────────────────────── */
+.btn-teal {
+  background: var(--teal);
+  color: var(--navy);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-teal:hover:not(:disabled) { background: var(--teal-dim); transform: translateY(-1px); }
+.btn-teal:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.btn-teal.running { background: #0a8a76; }
+
+/* ── Slice type toggle ──────────────────────────────────────────── */
+.slice-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 0;
+  flex: 1;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  border: none;
+}
