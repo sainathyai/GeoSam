@@ -40,8 +40,29 @@ def load_volume(path: str | Path) -> np.ndarray:
     if not path.exists():
         raise FileNotFoundError(f"SEG-Y file not found: {path}")
 
-    with segyio.open(str(path), iline=189, xline=193, ignore_geometry=False) as f:
-        volume = segyio.tools.cube(f).astype(np.float32)
+    try:
+        with segyio.open(str(path), iline=189, xline=193, ignore_geometry=False) as f:
+            return segyio.tools.cube(f).astype(np.float32)
+    except ValueError:
+        pass
+
+    # Fallback for files with irregular geometry (e.g. F3 which has 434 extra traces).
+    # Read all traces, map inline/crossline headers to grid indices, fill a zero-padded cube.
+    with segyio.open(str(path), iline=189, xline=193, ignore_geometry=True) as f:
+        ilines    = f.attributes(segyio.TraceField.INLINE_3D)[:]
+        xlines    = f.attributes(segyio.TraceField.CROSSLINE_3D)[:]
+        n_samples = len(f.samples)
+        all_traces = f.trace.raw[:].astype(np.float32)  # (n_traces, n_samples)
+
+    il_sorted = np.sort(np.unique(ilines))
+    xl_sorted = np.sort(np.unique(xlines))
+    il_map = {int(v): i for i, v in enumerate(il_sorted)}
+    xl_map = {int(v): i for i, v in enumerate(xl_sorted)}
+
+    volume = np.zeros((len(il_sorted), len(xl_sorted), n_samples), dtype=np.float32)
+    il_idx = np.array([il_map[int(v)] for v in ilines])
+    xl_idx = np.array([xl_map[int(v)] for v in xlines])
+    volume[il_idx, xl_idx, :] = all_traces
 
     return volume
 

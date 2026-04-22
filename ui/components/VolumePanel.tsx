@@ -12,16 +12,19 @@ interface Props {
 export function VolumePanel({ controls }: Props) {
   const [figData, setFigData] = useState<{ data: unknown[]; layout: unknown } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setFigData(null);
+    setError(null);
     const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
     fetch(
       `${base}/plot3d?dataset=${controls.dataset}&slice_type=${controls.slice_type}&slice_idx=${controls.slice_idx}`
     )
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); })
       .then(j => setFigData(j))
-      .catch(console.error)
+      .catch(e => setError((e as Error).message))
       .finally(() => setLoading(false));
   }, [controls.dataset, controls.slice_type, controls.slice_idx]);
 
@@ -81,12 +84,20 @@ export function VolumePanel({ controls }: Props) {
             style={{ width: "100%", height: "100%" }}
             useResizeHandler
           />
+        ) : error ? (
+          <div
+            className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center"
+            style={{ fontFamily: "var(--mono)", fontSize: 10, color: "#f87171" }}
+          >
+            <span>3D load failed</span>
+            <span style={{ color: "var(--slate-2)", fontSize: 9, wordBreak: "break-all" }}>{error}</span>
+          </div>
         ) : (
           <div
             className="flex h-full items-center justify-center"
             style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--slate-2)" }}
           >
-            failed to load 3D view
+            no data
           </div>
         )}
       </div>
