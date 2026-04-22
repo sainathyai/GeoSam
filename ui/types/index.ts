@@ -5,7 +5,7 @@ export type ModelSize = "tiny" | "small" | "base_plus" | "large";
 export interface Dataset {
   id: string;
   label: string;
-  shape: { inlines: number; crosslines: number; time_samples: number };
+  shape: { inlines: number; crosslines: number; time_samples: number } | null;
 }
 
 export interface SliceImages {

@@ -106,7 +106,7 @@ export default function Dashboard() {
   const set = (patch: Partial<Controls>) => setControls(prev => ({ ...prev, ...patch }));
 
   const selectedDataset = datasets.find(d => d.id === controls.dataset);
-  const maxIdx = selectedDataset
+  const maxIdx = selectedDataset?.shape
     ? controls.slice_type === "inline"     ? selectedDataset.shape.inlines - 1
     : controls.slice_type === "crossline" ? selectedDataset.shape.crosslines - 1
     : selectedDataset.shape.time_samples - 1

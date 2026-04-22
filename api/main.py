@@ -191,6 +191,8 @@ class SAMRequest(BaseModel):
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 @app.get("/datasets")
 def list_datasets():
+    # List all configured datasets; shape is populated only if already cached locally.
+    # Files are downloaded from GCS on first slice/sam request, not here.
     result = []
     for name, path in DATASETS.items():
         if path.exists():
@@ -200,6 +202,13 @@ def list_datasets():
                 "id":    name,
                 "label": f"{name}  ({n_il}×{n_xl}×{n_t})",
                 "shape": {"inlines": n_il, "crosslines": n_xl, "time_samples": n_t},
+            })
+        elif GCS_BUCKET:
+            # File is in GCS but not yet cached — still expose it, shape unknown until loaded
+            result.append({
+                "id":    name,
+                "label": name,
+                "shape": None,
             })
     return result
 
