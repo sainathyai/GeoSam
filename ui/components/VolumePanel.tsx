@@ -15,8 +15,9 @@ export function VolumePanel({ controls }: Props) {
 
   useEffect(() => {
     setLoading(true);
+    const base = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
     fetch(
-      `http://localhost:8000/plot3d?dataset=${controls.dataset}&slice_type=${controls.slice_type}&slice_idx=${controls.slice_idx}`
+      `${base}/plot3d?dataset=${controls.dataset}&slice_type=${controls.slice_type}&slice_idx=${controls.slice_idx}`
     )
       .then(r => r.json())
       .then(j => setFigData(j))

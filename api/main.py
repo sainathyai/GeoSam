@@ -59,6 +59,7 @@ _cors_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://geosam.veritasintelai.com",
+    "https://geosam-ui-pv6inlfepa-uc.a.run.app",
 ]
 app.add_middleware(
     CORSMiddleware,
