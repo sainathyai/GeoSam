@@ -36,12 +36,18 @@ steps:
   - name: gcr.io/cloud-builders/docker
     id: push-api
     waitFor: [build-api]
-    args: [push, --all-tags, ${_REPO}/api]
+    args:
+      - push
+      - --all-tags
+      - ${_REPO}/api
 
   - name: gcr.io/cloud-builders/docker
     id: push-ui
     waitFor: [build-ui]
-    args: [push, --all-tags, ${_REPO}/ui]
+    args:
+      - push
+      - --all-tags
+      - ${_REPO}/ui
 
   # ── Deploy API to Cloud Run ──────────────────────────────────────────────────
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
